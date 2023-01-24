@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id 'com.diffplug.spotless'
+}
+
+apply from: 'lint.gradle'
+
+subprojects {
+    group = "${groupId}"
+    version = "${projectVersion}"
+
+    repositories {
+        mavenCentral()
+    }
+
+    sourceCompatibility = project.javaVersion
+    targetCompatibility = project.javaVersion
+
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    dependencies {
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+        testImplementation "org.assertj:assertj-core:${assertjVersion}"
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+        finalizedBy jacocoTestCoverageVerification
+    }
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                element = 'CLASS'
+                limit {
+                    counter = 'BRANCH'
+                    value = 'COVEREDRATIO'
+                    minimum = 1
+                }
+                limit {
+                    counter = 'INSTRUCTION'
+                    value = 'COVEREDRATIO'
+                    minimum = 1
+                }
+            }
+        }
+    }
+
+}
