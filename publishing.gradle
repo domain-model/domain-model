@@ -1,0 +1,80 @@
+sourceCompatibility = project.javaVersion
+targetCompatibility = project.javaVersion
+
+if (project.hasProperty('allowPublishing')) {
+    subprojects {
+        apply plugin: 'java'
+        apply plugin: 'maven-publish'
+        apply plugin: 'signing'
+
+        task sourcesJar(type: Jar) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
+        artifacts {
+            archives sourcesJar
+        }
+        signing {
+            sign configurations.archives
+        }
+        task publishBuild(type: GradleBuild) {
+            group = 'publishing'
+            tasks = ['clean', 'build']
+        }
+        publish {
+            dependsOn 'publishBuild'
+        }
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+                    artifactId = project.name
+                    group = project.groupId
+                    version = project.projectVersion
+                    from components.java
+
+                    artifact sourcesJar
+
+                    pom {
+                        name = project.groupId
+                        description = 'DomainModel was created to design and implement domains of all industries in the world.'
+                        url = 'https://github.com/domain-model/domain-model'
+
+                        scm {
+                            connection = 'scm:git:git://github.com/domain-model/domain-model.git'
+                            developerConnection = 'scm:git:https://github.com/domain-model/domain-model.git'
+                            url = 'https://github.com/domain-model/domain-model'
+                        }
+                        licenses {
+                            license {
+                                name = 'The Apache License, Version 2.0'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'DomainModel'
+                                name = 'DomainModel'
+                                email = 'domainmodel.owner@gmail.com'
+                            }
+                        }
+                    }
+                }
+            }
+            repositories {
+                maven {
+                    name = 'sonatype'
+                    url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+
+                    def releasesRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/releases/'
+                    def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+                    url = project.projectVersion.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+                    credentials {
+                        username ossrhUsername
+                        password ossrhPassword
+                    }
+                }
+            }
+        }
+    }
+}

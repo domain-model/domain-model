@@ -3,6 +3,7 @@ plugins {
     id 'com.diffplug.spotless'
 }
 
+apply from: 'publishing.gradle'
 apply from: 'lint.gradle'
 
 subprojects {
